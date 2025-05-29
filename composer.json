@@ -8,6 +8,11 @@
             "AMABK\\LivewireSearchSelect\\": "src/"
         }
     },
+    "authors": [
+        {
+            "name": "Arnold Mate"
+        }
+    ],
     "extra": {
         "laravel": {
             "providers": [
