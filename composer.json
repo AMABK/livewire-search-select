@@ -1,0 +1,22 @@
+{
+    "name": "amabk/livewire-search-select",
+    "description": "Reusable Livewire searchable dropdown component.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "AMABK\\LivewireSearchSelect\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AMABK\\LivewireSearchSelect\\LivewireSearchSelectServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "livewire/livewire": "^3.0"
+    }
+}
