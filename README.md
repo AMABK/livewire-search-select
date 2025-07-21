@@ -12,7 +12,7 @@ Install via Composer:
 
 ```bash
 composer require amabk/livewire-search-select
-
+```
 
 ### 2. Basic Usage
 
