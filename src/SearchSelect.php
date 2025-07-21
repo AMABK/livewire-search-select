@@ -9,199 +9,121 @@ class SearchSelect extends Component
     public $modelClass;
     public $inputClass = '';
     public $optionClass = '';
-    public $labelFields = ['name'];   // Accepts array or string, will always be cast to array
-    public $labelSeparator = ' - ';
-    public $labelSuffix = '';         // Appended after all fields (e.g., closing bracket)
+    public $labelField = ['email'];
+    public $searchFields = [];
+    public $concatFields = false;
     public $search = '';
     public $options = [];
-    public $selectedId = null;        // int|null (single) OR array (multiple)
+    public $selectedId = null;
     public $emitEvent = null;
     public $placeholder = 'Search...';
-    public $selectedLabel = '';       // string (single) OR array (multiple)
-    public $multiple = false;
+    public $selectedLabel = '';
+    public $orderBy = [
+        'field' => 'id',
+        'direction' => 'asc',
+    ];
 
-    /**
-     * Mount the component with initial state.
-     */
     public function mount(
         $modelClass,
-        $labelFields = ['name'],
+        $labelField = ['email'],
         $emitEvent = null,
         $placeholder = 'Search...',
         $selectedId = null,
         $inputClass = '',
         $optionClass = '',
-        $multiple = false,
-        $labelSeparator = ' - ',
-        $labelSuffix = ''
+        $searchFields = [],
+        $concatFields = false
     ) {
-        // Accept comma-separated string or array for labelFields
-        if (is_string($labelFields)) {
-            $this->labelFields = array_map('trim', explode(',', $labelFields));
-        } else {
-            $this->labelFields = $labelFields;
-        }
-        $this->labelSeparator = $labelSeparator;
-        $this->labelSuffix = $labelSuffix;
-
-        // Validate emitEvent (must be a non-empty string)
         if (empty($emitEvent) || !is_string($emitEvent)) {
+            Log::error('Emit event must be a string and not empty');
             $this->emitEvent = null;
             return;
         }
 
         $this->modelClass = $modelClass;
+        $this->labelField = is_array($labelField) ? $labelField : [$labelField];
         $this->emitEvent = $emitEvent;
         $this->placeholder = $placeholder;
+        $this->selectedId = $selectedId;
         $this->inputClass = $inputClass;
         $this->optionClass = $optionClass;
-        $this->multiple = $multiple;
+        $this->searchFields = !empty($searchFields) ? $searchFields : $this->labelField;
+        $this->concatFields = $concatFields;
 
-        if ($this->multiple) {
-            $this->selectedId = is_array($selectedId) ? $selectedId : (empty($selectedId) ? [] : [$selectedId]);
-            $this->selectedLabel = [];
-            if (!empty($this->selectedId)) {
-                foreach ($this->selectedId as $id) {
-                    $model = $modelClass::find($id);
-                    if ($model) {
-                        $this->selectedLabel[$id] = $this->buildLabel($model);
-                    }
-                }
-            }
-        } else {
-            $this->selectedId = $selectedId;
-            if ($selectedId) {
-                $model = $modelClass::find($selectedId);
-                if ($model) {
-                    $label = $this->buildLabel($model);
-                    $this->selectedLabel = $label;
-                    $this->search = $label;
-                }
+        if ($selectedId) {
+            $model = $modelClass::find($selectedId);
+            if ($model) {
+                $this->selectedLabel = $this->getLabelFromModel($model);
+                $this->search = $this->selectedLabel;
             }
         }
+
+        $this->loadOptions();
     }
 
-    /**
-     * Helper: Builds the label for an option, from the requested fields.
-     */
-    public function buildLabel($model)
-    {
-        // Ensure labelFields is always an array
-        if (is_string($this->labelFields)) {
-            $this->labelFields = array_map('trim', explode(',', $this->labelFields));
-        }
-        $parts = [];
-        foreach ($this->labelFields as $field) {
-            if (isset($model->{$field})) {
-                $parts[] = $model->{$field};
-            }
-        }
-        // Add suffix (like closing bracket) if set
-        return implode($this->labelSeparator, $parts) . $this->labelSuffix;
-    }
-
-    /**
-     * When the search input updates, fetch matching options.
-     */
     public function updatedSearch()
     {
-        if ($this->search == '') {
-            if ($this->multiple) {
-                // For multi-select, do not clear selections
-            } else {
-                $this->selectedId = null;
-                $this->dispatch($this->emitEvent, '');
-            }
-            return;
-        }
-        $class = $this->modelClass;
-
-        // Fetch matching records from the model (limit to 10) 
-        $this->options = $class::where(function ($q) {
-            foreach ($this->labelFields as $field) {
-                $q->orWhere($field, 'ilike', '%' . $this->search . '%');
-            }
-        })
-            ->orderBy($this->labelFields[0])
-            ->limit(10)
-            ->get();
+        $this->loadOptions();
     }
 
-    /**
-     * When an option is selected from the dropdown or a tag is removed.
-     *
-     * @param mixed $id
-     * @return void
-     */
+    protected function loadOptions()
+    {
+        if (trim($this->search) === '') {
+            $this->options = [];
+            $this->selectedId = null;
+            $this->dispatch($this->emitEvent, '');
+            return;
+        }
+
+        $class = $this->modelClass;
+        $query = $class::query();
+
+        if ($this->concatFields && count($this->searchFields) > 1) {
+            $concatExpr = "CONCAT(" . implode(", ' ', ", $this->searchFields) . ")";
+            $query->whereRaw("$concatExpr LIKE ?", ["%" . $this->search . "%"]);
+        } else {
+            foreach ($this->searchFields as $i => $field) {
+                $method = $i === 0 ? 'where' : 'orWhere';
+                $query->{$method}($field, 'like', '%' . $this->search . '%');
+            }
+        }
+
+        $query->orderBy($this->orderBy['field'], $this->orderBy['direction'])
+              ->limit(10);
+
+        $this->options = $query->get();
+    }
+
     public function selectOption($id)
     {
         $class = $this->modelClass;
         $model = $class::find($id);
 
-        if (!$model) return;
-
-        if ($this->multiple) {
-            // Add or remove from selected
-            if (in_array($id, $this->selectedId)) {
-                // Remove
-                $index = array_search($id, $this->selectedId);
-                if ($index !== false) {
-                    unset($this->selectedId[$index]);
-                    unset($this->selectedLabel[$id]);
-                    // Reset array keys to avoid index gaps
-                    $this->selectedId = array_values($this->selectedId);
-                }
-            } else {
-                // Add
-                $this->selectedId[] = $id;
-                $this->selectedLabel[$id] = $this->buildLabel($model);
-            }
-            // Emit the array of IDs to the parent
-            $this->dispatch($this->emitEvent, $this->selectedId);
-            // Optionally clear input and close options
-            $this->options = [];
-            $this->search = '';
-        } else {
-            // Single select
+        if ($model) {
             $this->selectedId = $model->id;
-            $this->selectedLabel = $this->buildLabel($model);
+            $this->selectedLabel = $this->getLabelFromModel($model);
             $this->search = $this->selectedLabel;
             $this->options = [];
+
             $this->dispatch($this->emitEvent, $model->id);
         }
     }
 
-    /**
-     * Remove a selected item by ID (for tag removal).
-     */
-    public function removeSelection($id)
+    protected function getLabelFromModel($model)
     {
-        if ($this->multiple && in_array($id, $this->selectedId)) {
-            $index = array_search($id, $this->selectedId);
-            if ($index !== false) {
-                unset($this->selectedId[$index]);
-                unset($this->selectedLabel[$id]);
-                $this->selectedId = array_values($this->selectedId);
-                $this->dispatch($this->emitEvent, $this->selectedId);
-            }
-        }
-    }
+        $fields = $this->labelField;
 
-    /**
-     * Called by Alpine on backspace, to remove the last selected tag if search is empty.
-     */
-    public function handleBackspace()
-    {
-        if ($this->multiple && $this->search === '' && !empty($this->selectedId)) {
-            $lastId = array_pop($this->selectedId);
-            unset($this->selectedLabel[$lastId]);
-            $this->selectedId = array_values($this->selectedId);
-            $this->dispatch($this->emitEvent, $this->selectedId);
+        // Ensure $fields is an array
+        if (!is_array($fields)) {
+            return $model->{$fields};
         }
+
+        return implode(' ', array_map(fn($field) => $model->{$field} ?? '', $fields));
     }
 
     public function render()
     {
-        return view('livewire-search-select::search-select');
+        return view('livewire.reusable.search-select');
     }
 }
+
