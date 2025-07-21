@@ -1,3 +1,9 @@
+## Livewire Search Select
+
+A powerful and customizable Livewire component for searchable select dropdowns. Supports multi-field labels, concatenation, and emits Livewire events for reactive parent handling.
+
+---
+
 ## Usage
 
 ### 1. Installation
@@ -6,9 +12,7 @@ Install via Composer:
 
 ```bash
 composer require amabk/livewire-search-select
-```
 
----
 
 ### 2. Basic Usage
 
@@ -17,19 +21,20 @@ Add the component to any Blade view:
 ```blade
 <livewire:livewire-search-select::search-select
     :model-class="\App\Models\User::class"
-    label-fields="name,email"
+    :label-fields="['name', 'email']"
     label-separator=" ["
     label-suffix="]"
     :multiple="true"
     emit-event="usersSelected"
     placeholder="Search users..."
 />
+
 ```
 
 **Props:**
 
 * `model-class`: The Eloquent model you want to search/select from. **(Required)**
-* `label-fields`: One or more model attributes to display as the label. Accepts comma-separated string or array. **(Required)**
+* `label-fields`: One or more model attributes used to display labels. Accepts a string (e.g., 'name') or an array (e.g., ['first_name', 'last_name']).
 * `label-separator`: The separator used **between** label fields. *(Default: **`' - '`**)*
 * `label-suffix`: Appended **after** the final label field (e.g., closing bracket). *(Default: **`''`**)*
 * `emit-event`: The event name to emit when an item is selected. **(Required)**
@@ -88,7 +93,7 @@ You can pass custom CSS classes to the input and the options list:
 ```blade
 <livewire:livewire-search-select::search-select
     :model-class="\App\Models\Product::class"
-    label-fields="title,sku"
+    :label-fields="['title', 'sku']"
     label-separator=" | SKU: "
     :multiple="true"
     emit-event="productsChosen"
@@ -96,6 +101,7 @@ You can pass custom CSS classes to the input and the options list:
     option-class="max-h-48"
     placeholder="Find a product..."
 />
+
 ```
 
 ---
@@ -120,18 +126,19 @@ This will preselect the items with `id = 5` and `id = 9` and show their labels i
 
 ### 6. Supported Props
 
-| Prop            | Type         | Required | Default     | Description                         |
-| --------------- | ------------ | -------- | ----------- | ----------------------------------- |
-| model-class     | string       | yes      | —           | Fully qualified Eloquent class      |
-| label-fields    | string/array | yes      | 'name'      | Attribute(s) used for labels        |
-| label-separator | string       | no       | ' - '       | Used **between** label fields       |
-| label-suffix    | string       | no       | ''          | Appended **after** all label fields |
-| emit-event      | string       | yes      | —           | Livewire event name to emit         |
-| placeholder     | string       | no       | 'Search...' | Input placeholder                   |
-| selected-id     | mixed        | no       | null        | Pre-selected model id(s)            |
-| multiple        | boolean      | no       | false       | Enable multi-select                 |
-| input-class     | string       | no       | ''          | Custom input CSS classes            |
-| option-class    | string       | no       | ''          | Custom dropdown CSS classes         |
+| Prop            | Type           | Required | Default       | Description                       |
+| --------------- | -------------- | -------- | ------------- | --------------------------------- |
+| model-class     | string         | ✅        | —             | Eloquent model class              |
+| label-fields    | string/array   | ✅        | `'name'`      | Field(s) used for label rendering |
+| label-separator | string         | ❌        | `' - '`       | Separator between label fields    |
+| label-suffix    | string         | ❌        | `''`          | Suffix after all label fields     |
+| emit-event      | string         | ✅        | —             | Livewire event to emit            |
+| placeholder     | string         | ❌        | `'Search...'` | Input placeholder text            |
+| selected-id     | int/array/null | ❌        | null          | ID(s) of pre-selected options     |
+| multiple        | boolean        | ❌        | false         | Enable multiple selection         |
+| input-class     | string         | ❌        | `''`          | Additional CSS classes for input  |
+| option-class    | string         | ❌        | `''`          | Additional CSS for dropdown items |
+
 
 ---
 
@@ -150,7 +157,7 @@ This will preselect the items with `id = 5` and `id = 9` and show their labels i
 <form wire:submit.prevent="save">
     <livewire:livewire-search-select::search-select
         :model-class="\App\Models\User::class"
-        label-fields="name,email"
+        :label-fields="['name', 'email']"
         label-separator=", "
         label-suffix=" (active)"
         :multiple="true"
@@ -171,6 +178,7 @@ public function userSelected($userIds)
 {
     $this->userIds = $userIds;
 }
+
 ```
 
 ---
@@ -180,13 +188,14 @@ public function userSelected($userIds)
 ```blade
 <livewire:livewire-search-select::search-select
     :model-class="\App\Models\Country::class"
-    label-fields="country_name,country_code"
+    :label-fields="['country_name', 'country_code']"
     label-separator=" - "
     label-suffix=""
     :multiple="true"
     emit-event="countriesSelected"
     placeholder="Search country..."
 />
+
 ```
 
 ---
