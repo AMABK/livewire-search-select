@@ -2,124 +2,128 @@
 
 namespace AMABK\LivewireSearchSelect;
 
-use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
-/**
- * Livewire SearchSelect reusable dropdown component.
- *
- * @property string $modelClass      The Eloquent model class to search.
- * @property string $inputClass      CSS classes for input element.
- * @property string $optionClass     CSS classes for option list.
- * @property string $labelField      The field to display as label.
- * @property string $search          The current search value.
- * @property array  $options         List of search results.
- * @property int    $selectedId      The currently selected model ID.
- * @property string $emitEvent       Event name to emit when an option is selected.
- * @property string $placeholder     Placeholder text for input.
- * @property string $selectedLabel   Label of the currently selected item.
- */
 class SearchSelect extends Component
 {
     public $modelClass;
     public $inputClass = '';
     public $optionClass = '';
-    public $labelField = 'name';
+    public $labelField = ['email'];
+    public $searchFields = [];
+    public $concatFields = false;
     public $search = '';
     public $options = [];
     public $selectedId = null;
     public $emitEvent = null;
     public $placeholder = 'Search...';
     public $selectedLabel = '';
+    public $orderBy = [
+        'field' => 'id',
+        'direction' => 'asc',
+    ];
 
-    /**
-     * Mount the component with initial state.
-     */
     public function mount(
         $modelClass,
-        $labelField = 'name',
+        $labelField = ['email'],
         $emitEvent = null,
         $placeholder = 'Search...',
         $selectedId = null,
         $inputClass = '',
-        $optionClass = ''
+        $optionClass = '',
+        $searchFields = [],
+        $concatFields = false
     ) {
-        // Validate emitEvent (must be a non-empty string)
         if (empty($emitEvent) || !is_string($emitEvent)) {
             Log::error('Emit event must be a string and not empty');
             $this->emitEvent = null;
-            return ;
+            return;
         }
 
         $this->modelClass = $modelClass;
-        $this->labelField = $labelField;
+        $this->labelField = is_array($labelField) ? $labelField : [$labelField];
         $this->emitEvent = $emitEvent;
         $this->placeholder = $placeholder;
         $this->selectedId = $selectedId;
         $this->inputClass = $inputClass;
         $this->optionClass = $optionClass;
+        $this->searchFields = !empty($searchFields) ? $searchFields : $this->labelField;
+        $this->concatFields = $concatFields;
 
-        // If selectedId is provided, fetch and show its label
         if ($selectedId) {
             $model = $modelClass::find($selectedId);
             if ($model) {
-                $this->selectedLabel = $model->{$labelField};
-                $this->search = $model->{$labelField};
+                $this->selectedLabel = $this->getLabelFromModel($model);
+                $this->search = $this->selectedLabel;
             }
         }
+
+        $this->loadOptions();
     }
 
-    /**
-     * When the search input updates, fetch matching options.
-     */
     public function updatedSearch()
     {
-        Log::info('Search updated: ' . $this->search);
-        if ($this->search == '') {
-            $this->selectedId = null;
-            $this->dispatch($this->emitEvent, '');
-
-            return;
-        }
-        $class = $this->modelClass;
-        $field = $this->labelField;
-
-        // Fetch matching records from the model (limit to 10)
-        $this->options = $class::where($field, 'like', '%' . $this->search . '%')
-            ->orderBy($field)
-            ->limit(10)
-            ->get();
+        $this->loadOptions();
     }
 
-    /**
-     * When an option is selected from the dropdown.
-     *
-     * @param mixed $id
-     * @return void
-     */
+    protected function loadOptions()
+    {
+        if (trim($this->search) === '') {
+            $this->options = [];
+            $this->selectedId = null;
+            $this->dispatch($this->emitEvent, '');
+            return;
+        }
+
+        $class = $this->modelClass;
+        $query = $class::query();
+
+        if ($this->concatFields && count($this->searchFields) > 1) {
+            $concatExpr = "CONCAT(" . implode(", ' ', ", $this->searchFields) . ")";
+            $query->whereRaw("$concatExpr LIKE ?", ["%" . $this->search . "%"]);
+        } else {
+            foreach ($this->searchFields as $i => $field) {
+                $method = $i === 0 ? 'where' : 'orWhere';
+                $query->{$method}($field, 'like', '%' . $this->search . '%');
+            }
+        }
+
+        $query->orderBy($this->orderBy['field'], $this->orderBy['direction'])
+              ->limit(10);
+
+        $this->options = $query->get();
+    }
+
     public function selectOption($id)
     {
         $class = $this->modelClass;
-        $field = $this->labelField;
-
         $model = $class::find($id);
+
         if ($model) {
             $this->selectedId = $model->id;
-            $this->selectedLabel = $model->{$field};
-            $this->search = $model->{$field};
+            $this->selectedLabel = $this->getLabelFromModel($model);
+            $this->search = $this->selectedLabel;
             $this->options = [];
 
-            // Emit event to parent with selected ID
             $this->dispatch($this->emitEvent, $model->id);
         }
     }
 
-    /**
-     * Render the Livewire component's Blade view.
-     */
+    protected function getLabelFromModel($model)
+    {
+        $fields = $this->labelField;
+
+        // Ensure $fields is an array
+        if (!is_array($fields)) {
+            return $model->{$fields};
+        }
+
+        return implode(' ', array_map(fn($field) => $model->{$field} ?? '', $fields));
+    }
+
     public function render()
     {
-        // View path uses package namespace
-        return view('livewire-search-select::search-select');
+        return view('livewire.reusable.search-select');
     }
 }
+
