@@ -9,9 +9,9 @@
         @forelse($options as $option)
             <li wire:key="option-{{ $option->id }}" wire:click="selectOption('{{ $option->id }}')"
                 @click="open = false" class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                {{ is_array($labelField)
-                    ? implode(' ', array_map(fn($field) => $option->{$field} ?? '', $labelField))
-                    : $option->{$labelField} ?? '' }}
+                {{ is_array($this->labelFields)
+                    ? implode(' ', array_map(fn($field) => $option->{$field} ?? '', $this->labelFields))
+                    : $option->{$this->labelFields} ?? '' }}
             </li>
         @empty
             <li class="px-4 py-2 text-gray-500">No results found.</li>

@@ -1,5 +1,5 @@
 ## Livewire Search Select
-
+![alt text](image.png)
 A powerful and customizable Livewire component for searchable select dropdowns. Supports multi-field labels, concatenation, and emits Livewire events for reactive parent handling.
 
 ---
@@ -19,7 +19,7 @@ composer require amabk/livewire-search-select
 Add the component to any Blade view:
 
 ```blade
-<livewire:livewire-search-select::search-select
+<livewire:search-select
     :model-class="\App\Models\User::class"
     :label-fields="['name', 'email']"
     label-separator=" ["
@@ -33,8 +33,10 @@ Add the component to any Blade view:
 
 **Props:**
 
-* `model-class`: The Eloquent model you want to search/select from. **(Required)**
-* `label-fields`: One or more model attributes used to display labels. Accepts a string (e.g., 'name') or an array (e.g., ['first_name', 'last_name']).
+* `model-class`: The Eloquent model you want to search/select from. **(Required)** or an array (e.g., ['first_name', 'last_name']).
+* `search-fields`: Fields to search against. Defaults to `label-fields`
+* `label-fields`: The fields used to render the label in the dropdown. Can be a string or an array of fields.
+* `concat-fields`: If you want to concatenate multiple fields into a single label, pass an array of fields. *(Optional)* Defaults to `false`
 * `label-separator`: The separator used **between** label fields. *(Default: **`' - '`**)*
 * `label-suffix`: Appended **after** the final label field (e.g., closing bracket). *(Default: **`''`**)*
 * `emit-event`: The event name to emit when an item is selected. **(Required)**
@@ -73,7 +75,7 @@ class UserForm extends Component
 **In your Blade view:**
 
 ```blade
-<livewire:livewire-search-select::search-select
+<livewire:livewi-select
     :model-class="\App\Models\User::class"
     label-fields="name,email"
     label-separator=" ["
@@ -91,7 +93,7 @@ Selected User IDs: {{ implode(', ', $selectedUserIds) }}
 You can pass custom CSS classes to the input and the options list:
 
 ```blade
-<livewire:livewire-search-select::search-select
+<livewire:search-select
     :model-class="\App\Models\Product::class"
     :label-fields="['title', 'sku']"
     label-separator=" | SKU: "
@@ -111,7 +113,7 @@ You can pass custom CSS classes to the input and the options list:
 To set a default selection:
 
 ```blade
-<livewire:livewire-search-select::search-select
+<livewire:search-select
     :model-class="\App\Models\Category::class"
     label-fields="name"
     :selected-id="[5, 9]"
@@ -155,9 +157,10 @@ This will preselect the items with `id = 5` and `id = 9` and show their labels i
 
 ```blade
 <form wire:submit.prevent="save">
-    <livewire:livewire-search-select::search-select
+    <livewire:search-select
         :model-class="\App\Models\User::class"
         :label-fields="['name', 'email']"
+        :search-fields="['name', 'email', 'address']"
         label-separator=", "
         label-suffix=" (active)"
         :multiple="true"
@@ -186,9 +189,10 @@ public function userSelected($userIds)
 ### 9. Advanced: Use With Any Model & Any Label Format
 
 ```blade
-<livewire:livewire-search-select::search-select
+<livewire:search-select
     :model-class="\App\Models\Country::class"
     :label-fields="['country_name', 'country_code']"
+    :search-fields="['name', 'currency_code']"
     label-separator=" - "
     label-suffix=""
     :multiple="true"

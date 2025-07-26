@@ -9,7 +9,7 @@ class SearchSelect extends Component
     public $modelClass;
     public $inputClass = '';
     public $optionClass = '';
-    public $labelField = ['email'];
+    public $labelFields = ['email'];
     public $searchFields = [];
     public $concatFields = false;
     public $search = '';
@@ -25,7 +25,7 @@ class SearchSelect extends Component
 
     public function mount(
         $modelClass,
-        $labelField = ['email'],
+        $labelFields = ['email'],
         $emitEvent = null,
         $placeholder = 'Search...',
         $selectedId = null,
@@ -41,13 +41,13 @@ class SearchSelect extends Component
         }
 
         $this->modelClass = $modelClass;
-        $this->labelField = is_array($labelField) ? $labelField : [$labelField];
+        $this->labelFields = is_array($labelFields) ? $labelFields : [$labelFields];
         $this->emitEvent = $emitEvent;
         $this->placeholder = $placeholder;
         $this->selectedId = $selectedId;
         $this->inputClass = $inputClass;
         $this->optionClass = $optionClass;
-        $this->searchFields = !empty($searchFields) ? $searchFields : $this->labelField;
+        $this->searchFields = !empty($searchFields) ? $searchFields : $this->labelFields;
         $this->concatFields = $concatFields;
 
         if ($selectedId) {
@@ -111,7 +111,7 @@ class SearchSelect extends Component
 
     protected function getLabelFromModel($model)
     {
-        $fields = $this->labelField;
+        $fields = $this->labelFields;
 
         // Ensure $fields is an array
         if (!is_array($fields)) {
@@ -123,7 +123,8 @@ class SearchSelect extends Component
 
     public function render()
     {
-        return view('livewire.reusable.search-select');
+        return view('livewire-search-select::search-select');
+
     }
 }
 

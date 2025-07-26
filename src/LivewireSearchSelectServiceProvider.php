@@ -16,6 +16,7 @@ class LivewireSearchSelectServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'livewire-search-select');
 
         // Register the Livewire component under a unique tag
-        Livewire::component('livewire-search-select::search-select', SearchSelect::class);
+        Livewire::component('search-select', SearchSelect::class);
+
     }
 }
