@@ -42,11 +42,5 @@ class LivewireSearchSelectServiceProvider extends ServiceProvider
         //    Usage in Blade: <livewire:search-select ... />
         Livewire::component('search-select', SearchSelect::class);
 
-        // 4) (Optional) Load migrations if your package ships them
-        // $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
-        // And optionally allow publishing migrations:
-        // $this->publishes([
-        //     __DIR__ . '/../database/migrations' => database_path('migrations'),
-        // ], 'livewire-search-select-migrations');
     }
 }
