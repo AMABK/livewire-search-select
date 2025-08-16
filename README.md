@@ -22,6 +22,7 @@ Add the component to any Blade view:
 <livewire:search-select
     :model-class="\App\Models\User::class"
     :label-fields="['name', 'email']"
+    :search-fields="['name', 'email']"
     label-separator=" ["
     label-suffix="]"
     :multiple="true"
@@ -132,6 +133,8 @@ This will preselect the items with `id = 5` and `id = 9` and show their labels i
 | --------------- | -------------- | -------- | ------------- | --------------------------------- |
 | model-class     | string         | ✅        | —             | Eloquent model class              |
 | label-fields    | string/array   | ✅        | `'name'`      | Field(s) used for label rendering |
+| search-fields   | string/array   | ❌        | `'name'`      | Fields to search against          |
+| concat-fields   | array          | ❌        | `false`       | Fields to concatenate into label  |
 | label-separator | string         | ❌        | `' - '`       | Separator between label fields    |
 | label-suffix    | string         | ❌        | `''`          | Suffix after all label fields     |
 | emit-event      | string         | ✅        | —             | Livewire event to emit            |
@@ -140,6 +143,7 @@ This will preselect the items with `id = 5` and `id = 9` and show their labels i
 | multiple        | boolean        | ❌        | false         | Enable multiple selection         |
 | input-class     | string         | ❌        | `''`          | Additional CSS classes for input  |
 | option-class    | string         | ❌        | `''`          | Additional CSS for dropdown items |
+
 
 
 ---
@@ -153,7 +157,22 @@ This will preselect the items with `id = 5` and `id = 9` and show their labels i
 
 ---
 
-### 8. Example: User Dropdown in a Form
+### 8. Development
+<!-- PSR-4 namespace: AMABK\LivewireSearchSelect\ → src/
+
+Component class: AMABK\LivewireSearchSelect\SearchSelect
+
+View: resources/views/search-select.blade.php
+(Loaded as view('livewire-search-select::search-select'))
+
+Run tests / lints as usual in your app; this package is Livewire-only and framework-native. -->
+
+* **PSR-4 namespace:** AMABK\LivewireSearchSelect\ → src/
+* **Component class:** AMABK\LivewireSearchSelect\SearchSelect
+* **View:** resources/views/search-select.blade.php
+  (Loaded as view('livewire-search-select::search-select'))
+
+### 9. Example: User Dropdown in a Form
 
 ```blade
 <form wire:submit.prevent="save">
@@ -186,7 +205,7 @@ public function userSelected($userIds)
 
 ---
 
-### 9. Advanced: Use With Any Model & Any Label Format
+### 10. Advanced: Use With Any Model & Any Label Format
 
 ```blade
 <livewire:search-select
@@ -206,3 +225,7 @@ public function userSelected($userIds)
 
 **For advanced use, extend the component in your own package.**
 **For issues, open a GitHub issue or PR!**
+
+### License
+
+MIT © [AMABK](https://github.com/AMABK) 
