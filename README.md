@@ -17,19 +17,59 @@ composer require amabk/livewire-search-select
 ### 2. Basic Usage
 
 Add the component to any Blade view:
+#### Single-select
+```blade
+<livewire:search-select
+    model-class="\App\Models\User"
+    :label-fields="['name','email']"
+    :search-fields="['name','email']"
+    :concat-fields="true"
+    placeholder="Search by name or email…"
+    emit-event="userSelected"
+    :selected-id="$userId ?? null"
+    :initial-load="5"
+    input-class="border-gray-300 rounded-md shadow-sm focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500"
+/>
+```
+#### Multi-select (chips inside field)
 
 ```blade
 <livewire:search-select
-    :model-class="\App\Models\User::class"
-    :label-fields="['name', 'email']"
-    :search-fields="['name', 'email']"
-    label-separator=" ["
-    label-suffix="]"
+    model-class="\App\Models\User"
+    :label-fields="['name','email']"
+    :search-fields="['name','email']"
+    :concat-fields="true"
     :multiple="true"
-    emit-event="usersSelected"
-    placeholder="Search users..."
+    :selected-ids="$preselected ?? []"
+    :initial-load="8"
+    placeholder="Search and add users…"
+    input-class="border-gray-300 rounded-md shadow-sm focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500"
 />
+```
 
+#### Custom separators
+```blade
+{{-- Display label uses " | ", search concatenation still uses space (more forgiving) --}}
+<livewire:search-select
+  model-class="\App\Models\User"
+  :label-fields="['name','email']"
+  :search-fields="['name','email']"
+  :concat-fields="true"
+  label-separator=" | "
+  search-separator=" "
+/>
+```
+
+```blade
+{{-- Both label and search use the same separator --}}
+<livewire:search-select
+  model-class="\App\Models\User"
+  :label-fields="['first_name','last_name','email']"
+  :search-fields="['first_name','last_name','email']"
+  :concat-fields="true"
+  label-separator=" · "
+  search-separator=" · "
+/>
 ```
 
 | Prop              | Type                              |       Default | Notes                                                          |                                       |
@@ -38,8 +78,8 @@ Add the component to any Blade view:
 | `labelFields`     | `array<string>` \| `string`       |   `['email']` | Fields used to render the visible label                        |                                       |
 | `searchFields`    | `array<string>`                   | `labelFields` | Fields used for LIKE search                                    |                                       |
 | `concatFields`    | `bool`                            |       `false` | If `true`, search uses `CONCAT_WS(searchSeparator, …)`         |                                       |
-| `labelSeparator`  | `string`                          |         `' '` | **NEW** Separator when rendering labels (display only)         |                                       |
-| `searchSeparator` | `string`                          |         `' '` | **NEW** Separator used in `CONCAT_WS` when `concatFields=true` |                                       |
+| `labelSeparator`  | `string`                          |         `' '` | Separator when rendering labels (display only)         |                                       |
+| `searchSeparator` | `string`                          |         `' '` | Separator used in `CONCAT_WS` when `concatFields=true` |                                       |
 | `orderBy`         | \`{field\:string, direction:'asc' |     'desc'}\` | `{ field: 'id', direction: 'asc' }`                            | Sort for initial and searched results |
 | `limit`           | `int`                             |          `10` | Max rows for search results                                    |                                       |
 | `initialLoad`     | `int`                             |           `0` | Prefetch N items on **focus** when search is empty             |                                       |
@@ -66,8 +106,9 @@ class UserForm extends Component
 {
     public $selectedUserIds = [];
 
-    protected $listeners = ['usersSelected'];
-
+    #[On('usersSelected')] 
+    // single: receives id or '' when cleared
+    // multi: receives array<int> of ids
     public function usersSelected($userIds)
     {
         $this->selectedUserIds = $userIds;
@@ -134,28 +175,8 @@ This will preselect the items with `id = 5` and `id = 9` and show their labels i
 
 ---
 
-### 6. Supported Props
 
-| Prop            | Type           | Required | Default       | Description                       |
-| --------------- | -------------- | -------- | ------------- | --------------------------------- |
-| model-class     | string         | ✅        | —             | Eloquent model class              |
-| label-fields    | string/array   | ✅        | `'name'`      | Field(s) used for label rendering |
-| search-fields   | string/array   | ❌        | `'name'`      | Fields to search against          |
-| concat-fields   | array          | ❌        | `false`       | Fields to concatenate into label  |
-| label-separator | string         | ❌        | `' - '`       | Separator between label fields    |
-| label-suffix    | string         | ❌        | `''`          | Suffix after all label fields     |
-| emit-event      | string         | ✅        | —             | Livewire event to emit            |
-| placeholder     | string         | ❌        | `'Search...'` | Input placeholder text            |
-| selected-id     | int/array/null | ❌        | null          | ID(s) of pre-selected options     |
-| multiple        | boolean        | ❌        | false         | Enable multiple selection         |
-| input-class     | string         | ❌        | `''`          | Additional CSS classes for input  |
-| option-class    | string         | ❌        | `''`          | Additional CSS for dropdown items |
-
-
-
----
-
-### 7. Troubleshooting & Tips
+### 6. Troubleshooting & Tips
 
 * **No results found:** Ensure your model and label fields are correct and records exist.
 * **Alpine/Livewire conflicts:** Alpine.js is auto-reinitialized after Livewire updates, but if you experience issues, check your Alpine.js version.
@@ -164,7 +185,7 @@ This will preselect the items with `id = 5` and `id = 9` and show their labels i
 
 ---
 
-### 8. Development
+### 7. Development
 <!-- PSR-4 namespace: AMABK\LivewireSearchSelect\ → src/
 
 Component class: AMABK\LivewireSearchSelect\SearchSelect
@@ -179,7 +200,7 @@ Run tests / lints as usual in your app; this package is Livewire-only and framew
 * **View:** resources/views/search-select.blade.php
   (Loaded as view('livewire-search-select::search-select'))
 
-### 9. Example: User Dropdown in a Form
+### 8. Example: User Dropdown in a Form
 
 ```blade
 <form wire:submit.prevent="save">
