@@ -32,18 +32,25 @@ Add the component to any Blade view:
 
 ```
 
-**Props:**
+| Prop              | Type                              |       Default | Notes                                                          |                                       |
+| ----------------- | --------------------------------- | ------------: | -------------------------------------------------------------- | ------------------------------------- |
+| `modelClass`      | `string`                          |             — | Eloquent model FQCN, e.g. `\App\Models\User`                   |                                       |
+| `labelFields`     | `array<string>` \| `string`       |   `['email']` | Fields used to render the visible label                        |                                       |
+| `searchFields`    | `array<string>`                   | `labelFields` | Fields used for LIKE search                                    |                                       |
+| `concatFields`    | `bool`                            |       `false` | If `true`, search uses `CONCAT_WS(searchSeparator, …)`         |                                       |
+| `labelSeparator`  | `string`                          |         `' '` | **NEW** Separator when rendering labels (display only)         |                                       |
+| `searchSeparator` | `string`                          |         `' '` | **NEW** Separator used in `CONCAT_WS` when `concatFields=true` |                                       |
+| `orderBy`         | \`{field\:string, direction:'asc' |     'desc'}\` | `{ field: 'id', direction: 'asc' }`                            | Sort for initial and searched results |
+| `limit`           | `int`                             |          `10` | Max rows for search results                                    |                                       |
+| `initialLoad`     | `int`                             |           `0` | Prefetch N items on **focus** when search is empty             |                                       |
+| `placeholder`     | `string`                          | `'Search...'` | Hidden when chips exist (multi)                                |                                       |
+| `emitEvent`       | \`string                          |        null\` | `null`                                                         | Event name to dispatch on change      |
+| `inputClass`      | `string`                          |          `''` | Extra classes on the **wrapper** (the chip field)              |                                       |
+| `optionClass`     | `string`                          |          `''` | Extra classes on the dropdown `<ul>`                           |                                       |
+| `multiple`        | `bool`                            |       `false` | Enable multi-select                                            |                                       |
+| `selectedId`      | \`int                             |        null\` | `null`                                                         | Preselect for single-select           |
+| `selectedIds`     | `int[]`                           |          `[]` | Preselect for multi-select                                     |                                       |
 
-* `model-class`: The Eloquent model you want to search/select from. **(Required)** or an array (e.g., ['first_name', 'last_name']).
-* `search-fields`: Fields to search against. Defaults to `label-fields`
-* `label-fields`: The fields used to render the label in the dropdown. Can be a string or an array of fields.
-* `concat-fields`: If you want to concatenate multiple fields into a single label, pass an array of fields. *(Optional)* Defaults to `false`
-* `label-separator`: The separator used **between** label fields. *(Default: **`' - '`**)*
-* `label-suffix`: Appended **after** the final label field (e.g., closing bracket). *(Default: **`''`**)*
-* `emit-event`: The event name to emit when an item is selected. **(Required)**
-* `placeholder`: Placeholder text for the search input. *(Optional)*
-* `multiple`: Enable multi-select. Pass `true` for multiple selection. *(Optional)*
-* Other optional props: `selected-id`, `input-class`, `option-class`.
 
 ---
 
